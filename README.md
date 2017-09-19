@@ -1,6 +1,10 @@
 ## Welcome to GitHub Pages
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" >
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" >
 </script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js">
+</script>
+http://assets.annotateit.org/annotator/v1.2.10/annotator.min.js
 You can use the [editor on GitHub](https://github.com/Marios-R/Tags-filter-for-AnnotatorJS/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
