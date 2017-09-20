@@ -1,6 +1,7 @@
 ## Tags-filter-for-AnnotatorJS
 ### Tags filter with select2 for annotatorjs.
 
+
 #### Install
 
 Include jQuery, Select2 and AnnotatorJS with Tags plugin:
@@ -14,11 +15,15 @@ Include jQuery, Select2 and AnnotatorJS with Tags plugin:
 <script src="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/src/myFilter.js"></script>
 </pre>
 
+
+
 #### Options
 
 element: The element to prepend the select-box (default = the element you initialized Annotator on)
+
 width: The width of the select-box (default = '30%')
-multiple: Allow multiple selection of tags (default = true)
+
+
 
 #### Examples
 
@@ -33,13 +38,7 @@ annotation.annotator('addPlugin', 'MyFilter');
 <pre>
 var annotation = $('#main_content').annotator();
 annotation.annotator('addPlugin', 'Tags');
-annotation.annotator('addPlugin', 'MyFilter',{element: 'body', width: "500px"; multiple: true});
+annotation.annotator('addPlugin', 'MyFilter',{element: 'body', width: "500px"});
 </pre>
 
-[##### Example 3]https://marios-r.github.io/Tags-filter-for-AnnotatorJS/docs/example3)
-<pre>
-var annotation = $('#main_content').annotator();
-annotation.annotator('addPlugin', 'Tags');
-annotation.annotator('addPlugin', 'MyFilter',{multiple: false});
-</pre>
 

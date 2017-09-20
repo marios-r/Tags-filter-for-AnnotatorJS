@@ -1,25 +1,18 @@
 Annotator.Plugin.MyFilter = function (element,options) {
+	
 	var plugin = {};
 	
 	plugin.pluginInit = function () {
 		this._initializeActiveFiltersCounter();
-
-
-		
-
 		if(options){
 			var el = ('element' in options)?options.element:element;
 			this.options={
 				element:('element' in options)?options.element:element,
 				width:('width' in options)?options.width:'30%',
-				multiple:('multiple' in options)?options.multiple:true,
 			};
 		}else{
-			this.options={element: element,width:'30%',multiple:true};
+			this.options={element: element,width:'30%'};
 		}
-
-
-		//$(this.annotator.element).prepend($(filterwrapper));
 		this.annotator
           .subscribe("annotationsLoaded", function (clone) {
 			  plugin._initializeActiveFiltersCounter();
@@ -29,16 +22,12 @@ Annotator.Plugin.MyFilter = function (element,options) {
 			  $(annotation.highlights).data('active-filters',0);
 			  var filterscount = 0;
 			  var property=annotation.tags;
-			  console.log(annotation.tags);
-			  console.log($('#select-tag').val());
 			  if($('#select-tag').val()){
 				  for(var _i=0; _i< $('#select-tag').val().length; _i++){
-					  console.log($.inArray($('#select-tag').val()[_i],annotation.tags));
 					  if($.inArray($('#select-tag').val()[_i],annotation.tags)<0){
 						filterscount+=1;
 						$(annotation.highlights).attr("class", "annotator-hl annotator-hl-filtered");
-						$(this).data('active-filters',filterscount);
-						console.log($(this).data('active-filters'));
+						$(annotation.highlights).data('active-filters',filterscount);
 					}
 				  }
 			  }
@@ -52,7 +41,7 @@ Annotator.Plugin.MyFilter = function (element,options) {
 					if($.inArray($('#select-tag').val()[_i],annotation.tags)<0){
 						filterscount+=1;
 						$(annotation.highlights).attr("class", "annotator-hl annotator-hl-filtered");
-						$(this).data('active-filters',filterscount);
+						$(annotation.highlights).data('active-filters',filterscount);
 					} 
 				  }
 			  }
@@ -73,9 +62,6 @@ Annotator.Plugin.MyFilter = function (element,options) {
 			  }
 		  })
 		  .subscribe("annotationViewerTextField", function(field, annotation){
-			  console.log(field);
-			  console.log(annotation);
-				console.log($(annotation.highlights).data('active-filters'));
 				if($(annotation.highlights).data('active-filters'))
 					$(field).html('');
 		  })
@@ -104,15 +90,12 @@ Annotator.Plugin.MyFilter = function (element,options) {
 	);
 	//INITIALIZE SELECT2 FOR TAGS
 	plugin._initializeSelectTags = function() {
-		var filterwrapper='<div id="filter-wrapper"></div>';
-		$(this.options.element).prepend(filterwrapper);
-		var tagsel=(this.options.multiple)?'<select id="select-tag" multiple></select>':'<select id="select-tag"></select>';
+		var tagsel='<select id="select-tag" multiple></select>';
+		$(this.options.element).prepend(tagsel);
 		$('#filter-wrapper').append(tagsel);
-		//var customDropdownAdapter=$.fn.select2.amd.require('select2/dropdown/customAdapter');
 		var customAdapter = $.fn.select2.amd.require('select2/data/customAdapter');
 		$("#select-tag").select2({
 			width: this.options.width,
-			//dropdownAdapter : customDropdownAdapter,
 			placeholder: "Filter by tags",
 			tags:false,
 			dataAdapter: customAdapter,
@@ -120,10 +103,11 @@ Annotator.Plugin.MyFilter = function (element,options) {
 				noResults: function (params) {
 					return "No matches found";
 				}
-			}
+			},
+			allowClear: true
 		})
-		.on('select2:select', this._onSelectTag)
-		.on('select2:unselect', this._onUnselectTag);
+		.on('select2:select', function(e){ plugin._onSelectTag(e.params.data.id);})
+		.on('select2:unselect', function(e){ plugin._onUnselectTag(e.params.data.id);});
 	};
 	//COUNTER FOR ACTIVE FILTERS ON EACH ANNOTATION
 	plugin._initializeActiveFiltersCounter = function(){
@@ -136,7 +120,7 @@ Annotator.Plugin.MyFilter = function (element,options) {
 		var selectedTags = $('#select-tag').val();
 		var results = [];
 		var newdata=[];
-		$(".annotator-hl:visible").each(
+		$(".annotator-hl").each(
 			function(index){
 				if(typeof $(this).data('annotation').tags!=='undefined'){
 					for (i = 0; i < $(this).data('annotation').tags.length; i++) { 
@@ -151,35 +135,23 @@ Annotator.Plugin.MyFilter = function (element,options) {
 		});
 		$("#select-tag").data('select2').dataAdapter.updateOptions(results);
 		if(selectedTags){
-			selectedTags=$.grep(selectedTags,function(value){
-				return $.inArray(value,newdata);
+			newselectedTags=$.grep(selectedTags,function(value){
+				return $.inArray(value,newdata)>=0;
 			});
-			$('#select-tag').val(selectedTags);
+			$('#select-tag').val(newselectedTags);
 		}
+		$.each($.grep(selectedTags,function(value){
+			return $.inArray(value,newselectedTags)<0;
+		}),function(){plugin._onUnselectTag(this);});
 	};
-	//CHECK IF FILTER APPLIES TO ANNOTATION
-	plugin._isFiltered = function (input, tags) {
-        if (input && tags && tags.length) {
-          var keywords = input.split(/\s+/g);
-          for (var i = 0; i < keywords.length; i += 1) {
-            for (var j = 0; j < tags.length; j += 1) {
-              if (tags[j]==keywords[i]) {
-                return true;
-              }
-            }
-          }
-        }
-        return false;
-    };
+	
 	//ON SELECT TAG
-	plugin._onSelectTag = function(e){
-		var input = e.params.data.id;
-		console.log(input);
+	plugin._onSelectTag = function(input){
 		$(".annotator-hl").each(function(){
 			var filterscount=$(this).data('active-filters');
 			if(typeof $(this).data('annotation').tags!=='undefined'){
 				var property = $(this).data('annotation').tags;
-				if(!plugin._isFiltered(input,property)){
+				if($.inArray(input,property)<0){
 					$(this).addClass('annotator-hl-filtered');
 					$(this).data('active-filters',filterscount+1);
 				}
@@ -189,19 +161,14 @@ Annotator.Plugin.MyFilter = function (element,options) {
 				$(this).data('active-filters',filterscount+1);
 			}
 		});
-		$(".annotator-hl").each(function(){
-			console.log($(this).data('active-filters'));
-		});
 	};
 	//ON UNSELECT TAG
-	plugin._onUnselectTag = function(e){
-		var input = e.params.data.id;
+	plugin._onUnselectTag = function(input){
 		$(".annotator-hl").each(function(){
 			var filterscount=$(this).data('active-filters');
 			if(typeof $(this).data('annotation').tags!=='undefined'){
 				var property = $(this).data('annotation').tags;
-				
-				if(!plugin._isFiltered(input,property)&&filterscount){
+				if($.inArray(input,property)<0&&filterscount){
 					$(this).data('active-filters',filterscount-1);
 					if(!$(this).data('active-filters')){
 						$(this).removeClass('annotator-hl-filtered');
@@ -214,12 +181,8 @@ Annotator.Plugin.MyFilter = function (element,options) {
 					$(this).removeClass('annotator-hl-filtered');
 				}
 			}
-		});
-		$(".annotator-hl").each(function(){
-			console.log($(this).data('active-filters'));
-		});		
+		});	
 	}	
-
 
 	return plugin;
 }
