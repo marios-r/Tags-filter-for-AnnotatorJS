@@ -25,5 +25,5 @@ As the protagonist, Goku appears in most of the episodes, films, television spec
 <script>
 var annotation = $('#main_content').annotator();
 annotation.annotator('addPlugin', 'Tags');
-annotation.annotator('addPlugin', 'MyFilter',{element: 'body', width: "500px"; multiple: true});
+annotation.annotator('addPlugin', 'MyFilter',{multiple: false});
 </script>

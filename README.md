@@ -22,10 +22,24 @@ multiple: Allow multiple selection of tags (default = true)
 
 #### Examples
 
-[##### Example 1](https://marios-r.github.io/Tags-filter-for-AnnotatorJS/docs/example1.md)
+[##### Example 1](https://marios-r.github.io/Tags-filter-for-AnnotatorJS/docs/example1)
 <pre>
 var annotation = $('#main_content').annotator();
 annotation.annotator('addPlugin', 'Tags');
 annotation.annotator('addPlugin', 'MyFilter');
+</pre>
+
+[##### Example 2](https://marios-r.github.io/Tags-filter-for-AnnotatorJS/docs/example2)
+<pre>
+var annotation = $('#main_content').annotator();
+annotation.annotator('addPlugin', 'Tags');
+annotation.annotator('addPlugin', 'MyFilter',{element: 'body', width: "500px"; multiple: true});
+</pre>
+
+[##### Example 3]https://marios-r.github.io/Tags-filter-for-AnnotatorJS/docs/example3)
+<pre>
+var annotation = $('#main_content').annotator();
+annotation.annotator('addPlugin', 'Tags');
+annotation.annotator('addPlugin', 'MyFilter',{multiple: false});
 </pre>
 
