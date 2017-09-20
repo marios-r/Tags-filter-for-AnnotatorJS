@@ -4,12 +4,12 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js">
 </script>
-<script src="annotator.1.2.10/annotator.min.js"> 
+<script src="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/annotator.1.2.10/annotator.min.js"> 
 </script>
-<link href="annotator.1.2.10/annotator.min.css" rel="stylesheet" />
-<script src="annotator.1.2.10/annotator.tags.min.js"> 
+<link href="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/annotator.1.2.10/annotator.min.css" rel="stylesheet" />
+<script src="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/annotator.1.2.10/annotator.tags.min.js"> 
 </script>
-<script src="src/myFilter.js"> 
+<script src="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/src/myFilter.js"> 
 </script>
 You can use the [editor on GitHub](https://github.com/Marios-R/Tags-filter-for-AnnotatorJS/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
