@@ -9,7 +9,7 @@
 <link href="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/annotator.1.2.10/annotator.min.css" rel="stylesheet" />
 <script src="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/annotator.1.2.10/annotator.tags.min.js"> 
 </script>
-<script src="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/src/myFilter.js"> 
+<script src="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/src/tagsfilter.js"> 
 </script>
 
 

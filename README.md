@@ -14,8 +14,9 @@ Include jQuery, Select2 and AnnotatorJS with Tags plugin:
 <script src="https://rawgit.com/Marios-R/Tags-filter-for-AnnotatorJS/master/src/myFilter.js"></script>
 </pre>
 
-#### Options
 
+
+### Options
 **element** 
 The element to prepend the select-box. It's a jQuery selector. 
 default = the element you initialized Annotator on
@@ -23,12 +24,17 @@ default = the element you initialized Annotator on
 The width of the select-box 
 default = '30%'
 
+
+
 ### Events
 **tagSelected(annotations)** 
 Called when a tag has been selected and the respective filter have been applied
 **tagUnselected(annotations)**
 Called when a tag has been unselected and the respective filter has been removed
-#### Online Examples
+
+
+
+### Online Examples
 
 [##### Example 1](https://marios-r.github.io/Tags-filter-for-AnnotatorJS/docs/example1)
 <pre>
@@ -41,7 +47,7 @@ annotation.annotator('addPlugin', 'TagsFilter');
 <pre>
 var annotation = $('#main_content').annotator();
 annotation.annotator('addPlugin', 'Tags');
-annotation.annotator('addPlugin', 'TagsFilter',{element: 'body', width: "500px"; multiple: true});
+annotation.annotator('addPlugin', 'TagsFilter',{element: 'body', width: "500px"});
 </pre>
 
 
