@@ -1,4 +1,4 @@
-Annotator.Plugin.MyFilter = function (element,options) {
+Annotator.Plugin.TagsFilter = function (element,options) {
 	
 	var plugin = {};
 	
@@ -50,7 +50,7 @@ Annotator.Plugin.MyFilter = function (element,options) {
 		  .subscribe("annotationDeleted", function(annotation){
 			  plugin._updateSelectTagsData();
 		  })
-		  .subscribe('annotationViewerShown',function(viewer, annotations){
+		  .subscribe('annotationViewerShown',function(viewer, annotations){  
 			  var annotationsFilteredOut=true;
 			  for(var i=0;i<annotations.length;i++){
 				  if(!$(annotations[0].highlights).data('active-filters')){
@@ -60,10 +60,18 @@ Annotator.Plugin.MyFilter = function (element,options) {
 			  if(annotationsFilteredOut){
 				viewer.hide();
 			  }
-		  })
-		  .subscribe("annotationViewerTextField", function(field, annotation){
-				if($(annotation.highlights).data('active-filters'))
-					$(field).html('');
+			  else{
+				$(viewer.element).find('.annotator-item').each(function(){
+					var current_highlights=$(this).data('annotation').highlights;
+					console.log($(current_highlights).data('active-filters'));
+					if($(current_highlights).data('active-filters')){
+						$(this).hide();
+					}
+					else{
+						$(this).show();
+					}
+				});
+			  }
 		  })
 		  .subscribe("rangeNormalizeFail", function(annotation, r, e){
 			  console.log(annotation);
@@ -106,14 +114,26 @@ Annotator.Plugin.MyFilter = function (element,options) {
 			},
 			allowClear: true
 		})
-		.on('select2:select', function(e){ plugin._onSelectTag(e.params.data.id);})
-		.on('select2:unselect', function(e){ plugin._onUnselectTag(e.params.data.id);});
+		.on('select2:select', function(e){ 
+			plugin._onSelectTag(e.params.data.id);
+		})
+		.on('select2:unselect', function(e){ 
+			plugin._onUnselectTag(e.params.data.id);
+		});
 	};
 	//COUNTER FOR ACTIVE FILTERS ON EACH ANNOTATION
 	plugin._initializeActiveFiltersCounter = function(){
 		$(".annotator-hl").each(function(){
 			$(this).data('active-filters',0);
 		});
+	};
+	//GET ALL VISIBLE ANNOTATIONS
+	plugin._getVisibleAnnotations = function(){
+		var annotations = [];
+		$(".annotator-hl:not(.annotator-hl-filtered)").each(function(){
+			annotations.push($(this).data('annotation'));
+		});
+		return annotations;
 	};
 	//OPENING TAGS DROPDOWN
 	plugin._updateSelectTagsData = function(event) {
@@ -161,6 +181,8 @@ Annotator.Plugin.MyFilter = function (element,options) {
 				$(this).data('active-filters',filterscount+1);
 			}
 		});
+		annotations = plugin._getVisibleAnnotations();
+		plugin.annotator.publish("tagSelected", [annotations]);
 	};
 	//ON UNSELECT TAG
 	plugin._onUnselectTag = function(input){
@@ -182,6 +204,8 @@ Annotator.Plugin.MyFilter = function (element,options) {
 				}
 			}
 		});	
+		annotations = plugin._getVisibleAnnotations();
+		plugin.annotator.publish("tagUnselected", [annotations]);
 	}	
 
 	return plugin;
