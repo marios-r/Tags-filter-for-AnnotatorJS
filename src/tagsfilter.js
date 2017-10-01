@@ -3,85 +3,27 @@ Annotator.Plugin.TagsFilter = function (element,options) {
 	var plugin = {};
 	
 	plugin.pluginInit = function () {
-		this._initializeActiveFiltersCounter();
 		if(options){
 			var el = ('element' in options)?options.element:element;
 			this.options={
 				element:('element' in options)?options.element:element,
-				width:('width' in options)?options.width:'30%',
+				width:('width' in options)?options.width:'30%'
 			};
 		}else{
 			this.options={element: element,width:'30%'};
 		}
 		this.annotator
           .subscribe("annotationsLoaded", function (clone) {
-			  plugin._initializeActiveFiltersCounter();
-			  plugin._updateSelectTagsData();
+			  plugin._updateSelectTagsOptions(plugin._getTags());
           })
-		  .subscribe("annotationCreated", function(annotation){
-			  $(annotation.highlights).data('active-filters',0);
-			  var filterscount = 0;
-			  var property=annotation.tags;
-			  if($('#select-tag').val()){
-				  for(var _i=0; _i< $('#select-tag').val().length; _i++){
-					  if($.inArray($('#select-tag').val()[_i],annotation.tags)<0){
-						filterscount+=1;
-						$(annotation.highlights).attr("class", "annotator-hl annotator-hl-filtered");
-						$(annotation.highlights).data('active-filters',filterscount);
-					}
-				  }
-			  }
-			  plugin._updateSelectTagsData();
-		  })
-		  .subscribe("annotationUpdated", function(annotation){
-			  var property=annotation.tags;
-			  var filterscount = $(annotation.highlights).data('active-filters');
-			  if($('#select-tag').val()){
-				  for(var _i=0; _i< $('#select-tag').val().length; _i++){
-					if($.inArray($('#select-tag').val()[_i],annotation.tags)<0){
-						filterscount+=1;
-						$(annotation.highlights).attr("class", "annotator-hl annotator-hl-filtered");
-						$(annotation.highlights).data('active-filters',filterscount);
-					} 
-				  }
-			  }
-			  plugin._updateSelectTagsData();
-		  })
-		  .subscribe("annotationDeleted", function(annotation){
-			  plugin._updateSelectTagsData();
-		  })
-		  .subscribe('annotationViewerShown',function(viewer, annotations){  
-			  var annotationsFilteredOut=true;
-			  for(var i=0;i<annotations.length;i++){
-				  if(!$(annotations[0].highlights).data('active-filters')){
-					annotationsFilteredOut=false;
-				  }
-			  }
-			  if(annotationsFilteredOut){
-				viewer.hide();
-			  }
-			  else{
-				$(viewer.element).find('.annotator-item').each(function(){
-					var current_highlights=$(this).data('annotation').highlights;
-					console.log($(current_highlights).data('active-filters'));
-					if($(current_highlights).data('active-filters')){
-						$(this).hide();
-					}
-					else{
-						$(this).show();
-					}
-				});
-			  }
-		  })
-		  .subscribe("rangeNormalizeFail", function(annotation, r, e){
-			  console.log(annotation);
-			  console.log(r);
-			  console.log(e);
-		  })
+		  .subscribe("annotationCreated", plugin._onAnnotationCreated)
+		  .subscribe("annotationUpdated", plugin._onAnnotationUpdated)
+		  .subscribe("annotationDeleted", plugin._onAnnotationDeleted)
+		  .subscribe('annotationViewerShown',plugin._onViewerShown);
 		this._initializeSelectTags();
+		plugin._updateSelectTagsOptions(plugin._getTags());
 	};
   
-	//TAGS DATA
 	$.fn.select2.amd.define('select2/data/customAdapter',
 		['select2/data/array', 'select2/utils'],
 		function (ArrayAdapter, Utils) {
@@ -90,13 +32,13 @@ Annotator.Plugin.TagsFilter = function (element,options) {
 			}
 			Utils.Extend(CustomDataAdapter, ArrayAdapter);
 			CustomDataAdapter.prototype.updateOptions = function (data) {
-				this.$element.find('option').remove(); // remove all options
+				this.$element.find('option').remove(); 
 				this.addOptions(this.convertToOptions(data));
 			}        
 			return CustomDataAdapter;
 		}
 	);
-	//INITIALIZE SELECT2 FOR TAGS
+
 	plugin._initializeSelectTags = function() {
 		var tagsel='<select id="select-tag" multiple></select>';
 		$(this.options.element).prepend(tagsel);
@@ -114,99 +56,127 @@ Annotator.Plugin.TagsFilter = function (element,options) {
 			},
 			allowClear: true
 		})
-		.on('select2:select', function(e){ 
-			plugin._onSelectTag(e.params.data.id);
-		})
-		.on('select2:unselect', function(e){ 
-			plugin._onUnselectTag(e.params.data.id);
+		.on('change',function(){
+			plugin._applyTagFilters();
 		});
 	};
-	//COUNTER FOR ACTIVE FILTERS ON EACH ANNOTATION
-	plugin._initializeActiveFiltersCounter = function(){
+
+	plugin._applyTagFilters = function(){
+		var tagFilters = $('#select-tag').val();
+		filteredoutAnn = [];
+		resultingAnn =[];
 		$(".annotator-hl").each(function(){
-			$(this).data('active-filters',0);
-		});
-	};
-	//GET ALL VISIBLE ANNOTATIONS
-	plugin._getVisibleAnnotations = function(){
-		var annotations = [];
-		$(".annotator-hl:not(.annotator-hl-filtered)").each(function(){
-			annotations.push($(this).data('annotation'));
-		});
-		return annotations;
-	};
-	//OPENING TAGS DROPDOWN
-	plugin._updateSelectTagsData = function(event) {
-		var selectedTags = $('#select-tag').val();
-		var results = [];
-		var newdata=[];
-		$(".annotator-hl").each(
-			function(index){
-				if(typeof $(this).data('annotation').tags!=='undefined'){
-					for (i = 0; i < $(this).data('annotation').tags.length; i++) { 
-						newdata.push($(this).data('annotation').tags[i]);
-					}
+			if(tagFilters){
+				if(!plugin._checkIfFiltered($(this).data('annotation').tags,tagFilters)){
+					$(this).addClass('annotator-hl-filtered');
+					filteredoutAnn.push($(this).data('annotation'));
+				}else{
+					$(this).removeClass('annotator-hl-filtered');
+					resultingAnn.push($(this).data('annotation'));
 				}
+			}else{
+				$(this).removeClass('annotator-hl-filtered');
+				resultingAnn.push($(this).data('annotation'));
 			}
-		);
-		newdata=$.unique(newdata);
-		$.each(newdata,function(index){
+		});
+		tagFilters=(tagFilters)?tagFilters:[];
+		plugin.annotator.publish("onTagsFilterCheck", [filteredoutAnn,resultingAnn,tagFilters]);
+	};
+	
+	plugin._getTags = function(){
+		var _tags = [];
+		$(".annotator-hl").each(function(){
+			$.each($(this).data('annotation').tags,function(){
+				_tags.push(this.toString());
+			});
+		});
+		return $.unique(_tags);
+	};
+	
+	plugin._updateSelectTagsOptions = function (tags){
+		var selectedTags=$("#select-tag").val();
+		var results = [];
+		$.each(tags,function(index){
 			results.push({ id: this, text: this});
 		});
 		$("#select-tag").data('select2').dataAdapter.updateOptions(results);
 		if(selectedTags){
-			newselectedTags=$.grep(selectedTags,function(value){
-				return $.inArray(value,newdata)>=0;
-			});
-			$('#select-tag').val(newselectedTags);
+		$("#select-tag").val($.grep(selectedTags,function(value){return $.inArray(value,tags)>=0;}));
+		//if(selectedTags!==$("#select-tag").val()){
+			plugin._applyTagFilters();
+		//}
 		}
-		$.each($.grep(selectedTags,function(value){
-			return $.inArray(value,newselectedTags)<0;
-		}),function(){plugin._onUnselectTag(this);});
+		if(tags.length==0){
+			$("#select-tag").prop("disabled", true);
+		}else{
+			$("#select-tag").prop("disabled", false);
+		}
 	};
 	
-	//ON SELECT TAG
-	plugin._onSelectTag = function(input){
-		$(".annotator-hl").each(function(){
-			var filterscount=$(this).data('active-filters');
-			if(typeof $(this).data('annotation').tags!=='undefined'){
-				var property = $(this).data('annotation').tags;
-				if($.inArray(input,property)<0){
-					$(this).addClass('annotator-hl-filtered');
-					$(this).data('active-filters',filterscount+1);
+
+	plugin._checkIfFiltered = function(annotationTags,tagFilters){
+		return $.grep(annotationTags,function(value){
+			return $.inArray(value.toString(),tagFilters)>=0;
+		}).length==tagFilters.length;
+	};
+	
+	plugin._onAnnotationCreated = function (annotation){
+		var tagFilters = $('#select-tag').val();
+		var annotationTags = annotation.tags;
+		if(tagFilters){
+			if(tagFilters.length){
+				if(!plugin._checkIfFiltered(annotationTags,tagFilters)){
+					$(annotation.highlights).attr("class", "annotator-hl annotator-hl-filtered");
+
 				}
 			}
-			else{
-				$(this).addClass('annotator-hl-filtered');
-				$(this).data('active-filters',filterscount+1);
-			}
-		});
-		annotations = plugin._getVisibleAnnotations();
-		plugin.annotator.publish("tagSelected", [annotations]);
+		}
+		var prevTags=plugin._getTags();
+		var tags = $.unique($.merge(prevTags,annotationTags));
+		plugin._updateSelectTagsOptions(tags);
 	};
-	//ON UNSELECT TAG
-	plugin._onUnselectTag = function(input){
-		$(".annotator-hl").each(function(){
-			var filterscount=$(this).data('active-filters');
-			if(typeof $(this).data('annotation').tags!=='undefined'){
-				var property = $(this).data('annotation').tags;
-				if($.inArray(input,property)<0&&filterscount){
-					$(this).data('active-filters',filterscount-1);
-					if(!$(this).data('active-filters')){
-						$(this).removeClass('annotator-hl-filtered');
+
+	plugin._onAnnotationUpdated = function(annotation){
+		var tagFilters = $('#select-tag').val();
+		var annotationTags = annotation.tags;
+		if(tagFilters){
+			if(tagFilters.length){
+				if(!plugin._checkIfFiltered(annotationTags,tagFilters)){
+					$(annotation.highlights).attr("class", "annotator-hl annotator-hl-filtered");
+
+				}
+			}
+		}
+		var prevTags=plugin._getTags();
+		var tags = $.unique($.merge(prevTags,annotationTags));
+		plugin._updateSelectTagsOptions(tags);
+	};
+	
+	plugin._onAnnotationDeleted = function(annotation){
+		plugin._updateSelectTagsOptions(plugin._getTags());
+	};
+	
+	plugin._onViewerShown = function(viewer, annotations){
+		var tagFilters = $('#select-tag').val();
+		if(tagFilters){
+			var annotationsFilteredOut=true;
+			$(viewer.element).find('.annotator-item').each(function(){
+				var annotationTags = $(this).data('annotation').tags;
+				if(typeof annotationTags !== 'undefined'){
+					if(!plugin._checkIfFiltered(annotationTags,tagFilters)){
+						$(this).hide();
+					}
+					else{
+						annotationsFilteredOut = false;
 					}
 				}
+			});
+			if(annotationsFilteredOut){
+				viewer.hide();
 			}
-			else{
-				$(this).data('active-filters',filterscount-1);
-				if(!$(this).data('active-filters')){
-					$(this).removeClass('annotator-hl-filtered');
-				}
-			}
-		});	
-		annotations = plugin._getVisibleAnnotations();
-		plugin.annotator.publish("tagUnselected", [annotations]);
-	}	
-
+		}
+	};
+	
 	return plugin;
+	
 }
