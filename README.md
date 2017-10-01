@@ -34,13 +34,16 @@ default = '30%'
 
 ### Events
 ---
-**tagSelected(annotations)** 
+**onTagsFilterCheck(filteredoutAnn,resultingAnn,tagFilters)** 
 
-Called when a tag has been selected and the respective filter have been applied
+Called when a filter check has been done. 
 
-**tagUnselected(annotations)**
+filteredoutAnn: Annotations that has been filtered out
 
-Called when a tag has been unselected and the respective filter has been removed
+resultingAnn: Resulting annotations after the filter
+
+tagFilters: current tag filters
+
 
 
 
